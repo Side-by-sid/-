@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>কিচড়ি ভাই</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      background: linear-gradient(to right, #fbe9e7, #ffccbc);
+    }
+    .hidden { display: none; }
+    header {
+      background: #ff7043;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #ffab91;
+      padding: 10px;
+    }
+    nav button {
+      background: none;
+      border: none;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      padding: 10px 20px;
+      margin: 0 10px;
+      transition: transform 0.2s ease;
+    }
+    nav button:hover {
+      transform: scale(1.1);
+      color: #d84315;
+    }
+    .section {
+      padding: 20px;
+    }
+    .food-card {
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .food-card:hover {
+      transform: perspective(600px) rotateX(0deg) scale(1.05);
+    }
+    .food-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .btn {
+      background: #ff5722;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    .btn-primary {
+      background: #ff7043;
+    }
+    .login-form input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .success-message {
+      text-align: center;
+      font-size: 22px;
+      color: green;
+      animation: successPop 1s ease forwards;
+    }
+    @keyframes successPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="section">
+  <header>
+    <h1>কিচড়ি ভাই</h1>
+    <p>Login to explore tasty food!</p>
+  </header>
+  <div class="login-form" style="max-width: 400px; margin: 0 auto;">
+    <input type="text" id="userName" placeholder="Enter your name" required>
+    <input type="password" id="userPass" placeholder="Enter password" required>
+    <button class="btn btn-primary" onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- MAIN APP (visible after login) -->
+<div id="app" class="hidden">
+  <header>
+    <h1>কিচড়ি ভাই</h1>
+    <p>Welcome, <span id="displayUser"></span></p>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('cart')">Cart</button>
+    <button onclick="showPage('saved')">Saved</button>
+    <button onclick="showPage('orders')">Orders</button>
+    <button onclick="showPage('profile')">Profile</button>
+  </nav>
+
+  <!-- HOME / FOOD SHOP -->
+  <div id="home" class="section">
+    <h2>Our Menu</h2>
+    <div class="food-card">
+      <img src="images/burger.jpg" alt="Burger">
+      <h3>Burger</h3>
+      <p>৳250</p>
+      <button class="btn" onclick="addToCart('Burger', 250)">Add to Cart</button>
+      <button class="btn" onclick="addToSaved('Burger')">Save</button>
+    </div>
+    <div class="food-card">
+      <img src="images/pizza.jpg" alt="Pizza Slice">
+      <h3>Pizza Slice</h3>
+      <p>৳180</p>
+      <button class="btn" onclick="addToCart('Pizza Slice', 180)">Add to Cart</button>
+      <button class="btn" onclick="addToSaved('Pizza Slice')">Save</button>
+    </div>
+    <div class="food-card">
+      <img src="images/biryani.jpg" alt="Chicken Biryani">
+      <h3>Chicken Biryani</h3>
+      <p>৳220</p>
+      <button class="btn" onclick="addToCart('Chicken Biryani', 220)">Add to Cart</button>
+      <button class="btn" onclick="addToSaved('Chicken Biryani')">Save</button>
+    </div>
+  </div>
+
+  <!-- CART -->
+  <div id="cart" class="section hidden">
+    <h2>Your Cart</h2>
+    <ul id="cartList"></ul>
+    <p>Total: ৳<span id="totalPrice">0</span></p>
+    <button class="btn btn-primary" onclick="checkout()">Checkout</button>
+    <div id="paymentAnimation" class="success-message hidden">Payment Successful!</div>
+  </div>
+
+  <!-- SAVED ITEMS -->
+  <div id="saved" class="section hidden">
+    <h2>Saved Items</h2>
+    <ul id="savedList"></ul>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="orders" class="section hidden">
+    <h2>Past Orders</h2>
+    <ul id="orderList"></ul>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="profile" class="section hidden">
+    <h2>Your Profile</h2>
+    <p><strong>Name:</strong> <span id="profileName"></span></p>
+    <p><strong>Email:</strong> not-set@example.com</p>
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+  let user = "";
+  let cart = [];
+  let savedItems = [];
+  let orders = [];
+
+  function login() {
+    const name = document.getElementById("userName").value.trim();
+    const pass = document.getElementById("userPass").value.trim();
+    if (name && pass) {
+      user = name;
+      document.getElementById("displayUser").textContent = user;
+      document.getElementById("profileName").textContent = user;
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      showPage("home");
+    } else {
+      alert("Please enter both name and password.");
+    }
+  }
+
+  function logout() {
+    location.reload();
+  }
+
+  function showPage(page) {
+    const pages = ["home", "cart", "saved", "orders", "profile"];
+    pages.forEach(p => document.getElementById(p).classList.add("hidden"));
+    document.getElementById(page).classList.remove("hidden");
+    if (page === "cart") updateCart();
+    if (page === "saved") updateSaved();
+    if (page === "orders") updateOrders();
+  }
+
+  function addToCart(name, price) {
+    cart.push({ name, price });
+    alert(name + " added to cart!");
+  }
+
+  function addToSaved(name) {
+    if (!savedItems.includes(name)) {
+      savedItems.push(name);
+      alert(name + " saved!");
+    }
+  }
+
+  function updateCart() {
+    const list = document.getElementById("cartList");
+    list.innerHTML = "";
+    let total = 0;
+    cart.forEach(item => {
+      let li = document.createElement("li");
+      li.textContent = `${item.name} - ৳${item.price}`;
+      list.appendChild(li);
+      total += item.price;
+    });
+    document.getElementById("totalPrice").textContent = total;
+  }
+
+  function updateSaved() {
+    const list = document.getElementById("savedList");
+    list.innerHTML = "";
+    savedItems.forEach(item => {
+      let li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    });
+  }
+
+  function checkout() {
+    if (cart.length === 0) return alert("Cart is empty!");
+    orders.push([...cart]);
+    cart = [];
+    updateCart();
+    document.getElementById("paymentAnimation").classList.remove("hidden");
+    setTimeout(() => {
+      document.getElementById("paymentAnimation").classList.add("hidden");
+      showPage("orders");
+    }, 2000);
+  }
+
+  function updateOrders() {
+    const list = document.getElementById("orderList");
+    list.innerHTML = "";
+    orders.forEach((order, i) => {
+      let li = document.createElement("li");
+      const total = order.reduce((sum, item) => sum + item.price, 0);
+      li.textContent = `Order ${i + 1} - ${order.length} items - ৳${total}`;
+      list.appendChild(li);
+    });
+  }
+</script>
+
+</body>
+</html>
